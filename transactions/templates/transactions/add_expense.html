@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Expense - FinanceTrack</title>
+</head>
+<body>
+
+    <h1>FinanceTrack</h1>
+    <h2>Add Expense</h2>
+
+    <form method="post">
+        {% csrf_token %}  <!-- CSRF token for security -->
+
+        {{ form.as_p }}   <!-- Display form fields from forms.py-->
+
+        <button type="submit">Add Expense</button>
+    </form>
+
+</body>
+</html>
