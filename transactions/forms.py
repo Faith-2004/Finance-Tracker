@@ -3,7 +3,7 @@ from decimal import Decimal
 from django import forms
 from django.utils import timezone
 
-from .models import Income, Expense, Category
+from .models import Income, Expense, Category, SavingsGoal
 
 
 class IncomeForm(forms.ModelForm):
@@ -88,3 +88,37 @@ class ExpenseForm(forms.ModelForm):
             )
 
         return amount
+
+
+class SavingsGoalForm(forms.ModelForm):
+    class Meta:
+        model = SavingsGoal
+        fields = ["name", "target_amount", "target_date", "description"]
+        widgets = {
+            "target_date": forms.DateInput(
+                attrs={"type": "date"}
+            ),
+            "description": forms.Textarea(
+                attrs={"rows": 3}
+            ),
+        }
+
+    def clean_target_amount(self):
+        amount = self.cleaned_data["target_amount"]
+
+        if amount <= Decimal("0"):
+            raise forms.ValidationError(
+                "Target amount must be greater than zero."
+            )
+
+        return amount
+
+    def clean_target_date(self):
+        date = self.cleaned_data["target_date"]
+
+        if date and date < timezone.localdate():
+            raise forms.ValidationError(
+                "Target date cannot be in the past."
+            )
+
+        return date
