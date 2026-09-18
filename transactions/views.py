@@ -2,8 +2,8 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db.models import Sum  #for doing additions"
 
-from .forms import IncomeForm, ExpenseForm, SavingsGoalForm
-from .models import Income, Expense, SavingsGoal
+from .forms import IncomeForm, ExpenseForm, SavingsGoalForm, SavingsTransactionForm 
+from .models import Income, Expense, SavingsGoal, SavingsTransaction
 
 
 @login_required
@@ -56,12 +56,30 @@ def add_savings_goal(request):
         "transactions/add_savings_goal.html",
         {"form": form}
     )
-
 @login_required
 def savings_goals(request):
     goals = SavingsGoal.objects.filter(
         user=request.user
     ).order_by("-created_at")
+
+    for goal in goals:
+        goal.saved_amount = (
+            SavingsTransaction.objects
+            .filter(savings_goal=goal)
+            .aggregate(total=Sum("amount"))["total"]
+            or 0
+        )
+
+        goal.remaining_amount = (
+            goal.target_amount - goal.saved_amount
+        )
+
+        if goal.target_amount > 0:
+            goal.progress = (
+                goal.saved_amount / goal.target_amount
+            ) * 100
+        else:
+            goal.progress = 0
 
     return render(
         request,
@@ -177,4 +195,33 @@ def dashboard(request):
             "balance": balance,
             "recent_transactions": recent_transactions,
         } #show the total income, total expenses, balance and recent transactions on the dashboard
+    )
+
+@login_required
+def add_savings_transaction(request, goal_id):
+    goal = get_object_or_404(
+        SavingsGoal,
+        id=goal_id,
+        user=request.user
+    )
+
+    if request.method == "POST":
+        form = SavingsTransactionForm(request.POST)
+
+        if form.is_valid():
+            transaction = form.save(commit=False)
+            transaction.savings_goal = goal
+            transaction.save()
+
+            return redirect("savings_goals")
+    else:
+        form = SavingsTransactionForm()
+
+    return render(
+        request,
+        "transactions/add_savings_transaction.html",
+        {
+            "form": form,
+            "goal": goal,
+        }
     )

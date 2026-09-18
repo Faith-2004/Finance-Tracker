@@ -57,7 +57,15 @@
                             <strong>Target:</strong>
                             KSh {{ goal.target_amount }}
                         </p>
+                       <p>
+    <strong>Saved:</strong>
+    KSh {{ goal.saved_amount }}
+</p>
 
+<p>
+    <strong>Remaining:</strong>
+    KSh {{ goal.remaining_amount }}
+</p>
                         {% if goal.target_date %}
                         <p>
                             <strong>Target Date:</strong>
@@ -72,22 +80,33 @@
                         {% endif %}
 
                         <a
+                              href="{% url 'add_savings_transaction' goal.id %}"
+                              class="btn btn-success btn-sm mt-2">
+                                + Add Money
+                        </a>
+
+                        <a
                             href="{% url 'delete_savings_goal' goal.id %}"
                             class="btn btn-outline-danger btn-sm mt-2">                        
                             Delete
                         </a>
 
-                        <div class="progress mt-3">
+                      <div class="progress mt-3">
 
-                            <div
-                                class="progress-bar"
-                                role="progressbar"
-                                style="width: 0%;"
-                            >
-                                0%
-                            </div>
+    <div
+        class="progress-bar"
+        role="progressbar"
+        style="width: {{ goal.progress }}%;"
+        aria-valuenow="{{ goal.progress }}"
+        aria-valuemin="0"
+        aria-valuemax="100"
+    >
+        {{ goal.progress|floatformat:1 }}%
+    </div>
 
-                        </div>
+</div>
+
+                        
 
                     </div>
 
